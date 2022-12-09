@@ -481,16 +481,16 @@ const getColorForDelta = (row, delta) => {
         case 2: // AVG Game Update
         case 3: // AVG Render Measure
         case 4: // AVG Frame Measure
-        case 5: // AVG Disk Idle %
-        case 6: // MAX Disk Read
-        case 7: // MAX Disk Write
-        case 8: // MAX VRAM
-        case 9: // AVG VRAM
-        case 10: // MAX Memory
-        case 11: // AVG Memory %
-        case 12: // MAX Desired Tex Memory
+        case 5: // AVG VRAM
+        case 6: // MAX VRAM,
+        case 7: // AVG GPU Utilization
+        case 8: // AVG Memory
+        case 9: // MAX Memory
+        case 10: // MAX Disk Read
+        case 11: // MAX Disk Write
+        case 12: // AVG Disk Idle
         case 13: // MAX Reserved Memory
-        case 14: return delta > 0 ? red : delta < 0 ? green : yellow; // AVG Gpu Utilization %
+        case 14: return delta > 0 ? red : delta < 0 ? green : yellow; // MAX Desired Tex Memory
     }
 }
 
@@ -585,10 +585,21 @@ const createTable = (parsedData) => {
     const dataKeys = Object.keys(parsedData);
     const dataValues = Object.values(parsedData);
     const rowNames = [
-        '% above 60 FPS', 'AVG FPS', 'AVG Game Update', 'AVG Render Measure', 'AVG Frame Measure',
-        'AVG Disk Idle, %', 'MAX Disk Read, kb\\s', 'MAX Disk Write, kb\\s', 'MAX VRAM, mb', 'AVG VRAM, mb',
-        'MAX Memory, mb', 'AVG Memory, %', 'MAX Desired Tex Memory, mb', 'MAX Reserved Memory, mb',
-        'AVG GPU Utilization, %'
+        '% above 60 FPS',
+        'AVG FPS',
+        'AVG Game Update',
+        'AVG Render Measure',
+        'AVG Frame Measure',
+        'AVG VRAM, mb',
+        'MAX VRAM, mb',
+        'AVG GPU Utilization, %',
+        'AVG Memory, %',
+        'MAX Memory, mb',
+        'MAX Disk Read, kb\\s',
+        'MAX Disk Write, kb\\s',
+        'AVG Disk Idle, %',
+        'MAX Reserved Memory, mb',
+        'MAX Desired Tex Memory, mb'
     ];
 
     if (document.getElementById('head') && document.getElementById('head')) {
