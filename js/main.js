@@ -520,12 +520,14 @@ const createTable = (parsedData) => {
     tr.className = 'table-primary';
     const thMap = document.createElement('th');
     thMap.scope = 'col';
-    thMap.textContent = `mapName`;
+    thMap.textContent = `tableName`;
+    thMap.contentEditable = 'true';
     tr.appendChild(thMap);
     for (let i = 0; i < dataKeys.length; i++) {
         const th = document.createElement('th');
         th.scope = 'col';
-        th.textContent = `report #${i}`;
+        th.textContent = `${getDatasetLabel(Object.keys(parsedData)[i])}`;
+        th.contentEditable = 'true';
         tr.appendChild(th);
     }
     const thDelta = document.createElement('th');
