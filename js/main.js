@@ -456,8 +456,6 @@ const calcAverage = (dataValues, dataset, param) => {
 * Calculate delta for summary table
 * */
 const calcDelta = (lastCol, prevCol) => {
-    console.log('last' + lastCol)
-    console.log('prev' + prevCol)
     if (lastCol === undefined || prevCol === undefined) {
         return '';
     }
