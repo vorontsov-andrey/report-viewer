@@ -196,8 +196,7 @@ const getOrCreateLegendList = (chart, id) => {
     if (!listContainer) {
         listContainer = document.createElement('ul');
         listContainer.id = 'listContainer';
-        listContainer.style.margin = 0;
-        listContainer.className = 'd-flex flex-row justify-content-center align-items-center w-100 pe-3';
+        listContainer.className = 'd-flex flex-row justify-content-center align-items-center w-100 m-0 p-0 pb-1';
         legendContainer.appendChild(listContainer);
     }
     return listContainer;
@@ -208,6 +207,14 @@ const getOrCreateLegendList = (chart, id) => {
 * Object for storing the latest legend names
 * */
 let lastLegendNames = {};
+
+
+/*
+* Get placeholder for html legend
+* */
+const getPlaceholder = (fileName) => {
+    return fileName.replace(/.+\.(\d+\w+).*/, '$1');
+}
 
 
 /*
@@ -227,7 +234,7 @@ const htmlLegendPlugin = {
         items.forEach(item => {
             const li = document.createElement('li');
             li.style.cursor = 'pointer';
-            li.className = 'd-flex flex-row justify-content-center align-items-center ps-5'
+            li.className = 'd-flex flex-row justify-content-center align-items-center ps-3'
 
             const boxSpan = document.createElement('span');
             boxSpan.style.background = item.fillStyle;
@@ -251,8 +258,8 @@ const htmlLegendPlugin = {
             const textField = document.createElement('input');
 
             textField.type = 'text';
-            textField.size = 23;
-            textField.placeholder = item.text;
+            textField.size = 22;
+            textField.placeholder = getPlaceholder(item.text);
             textField.value = lastLegendNames[item.text] === undefined ? '' : lastLegendNames[item.text];
             textField.className = 'm-0 p-0 border-0 bg-transparent';
             textField.onchange = () => {
@@ -621,7 +628,7 @@ const createTable = (parsedData) => {
     for (let i = 0; i < dataKeys.length; i++) {
         const th = document.createElement('th');
         th.scope = 'col';
-        th.textContent = `report #${i + 1}`;
+        th.textContent = getPlaceholder(Object.keys(parsedData)[i]);
         th.style.color = CHART_COLORS[i];
         th.contentEditable = 'true';
         tr.appendChild(th);
