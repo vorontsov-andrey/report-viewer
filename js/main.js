@@ -455,11 +455,13 @@ const calcAverage = (dataValues, dataset, param) => {
 /*
 * Calculate delta for summary table
 * */
-const calcDelta = (values) => {
-    if (values.length <= 1) {
+const calcDelta = (lastCol, prevCol) => {
+    console.log('last' + lastCol)
+    console.log('prev' + prevCol)
+    if (lastCol === undefined || prevCol === undefined) {
         return '';
     }
-    const delta = Number(values[values.length - 1] - values[values.length - 2]).toFixed(2);
+    const delta = Number(lastCol - prevCol).toFixed(2);
     return delta > 0 ? `+${delta}` : `${delta}`;
 }
 
@@ -494,6 +496,89 @@ const getColorForDelta = (row, delta) => {
 
 
 /*
+* Swap columns with index columnIndex1 and columnIndex2
+* */
+const swapColumns = (table, colIndex1, colIndex2) => {
+    const headRow = table.querySelector('thead > tr');
+    const rows = table.querySelectorAll("tbody > tr");
+
+    headRow.insertBefore(headRow.children[colIndex1], headRow.children[colIndex2]);
+    for(const row of rows){
+        row.insertBefore(row.children[colIndex1], row.children[colIndex2]);
+    }
+}
+
+
+/*
+* Get calculated row value
+* */
+const getCalculatedRowValue = (rowIndex, dataValues, datasetIndex) => {
+    switch (rowIndex) {
+        case '% above 60 FPS':
+            return calcPercentAbove60FPS(dataValues, datasetIndex);
+        case 'AVG FPS':
+            return calcAverage(dataValues, datasetIndex, PARAMS.fpsMeasure);
+        case 'AVG Game Update':
+            return calcAverage(dataValues, datasetIndex, PARAMS.gameUpdate);
+        case 'AVG Render Measure':
+            return calcAverage(dataValues, datasetIndex, PARAMS.renderMeasurer);
+        case 'AVG Frame Measure':
+            return calcAverage(dataValues, datasetIndex, PARAMS.frameMeasurer);
+        case 'AVG Disk Idle, %':
+            return calcAverage(dataValues, datasetIndex, PARAMS.diskIdle);
+        case 'MAX Disk Read, kb\\s':
+            return calcMax(dataValues, datasetIndex, PARAMS.diskRead);
+        case 'MAX Disk Write, kb\\s':
+            return calcMax(dataValues, datasetIndex, PARAMS.diskWrite);
+        case 'MAX VRAM, mb':
+            return calcMax(dataValues, datasetIndex, PARAMS.vram);
+        case 'AVG VRAM, mb':
+            return calcAverage(dataValues, datasetIndex, PARAMS.vram);
+        case 'MAX Memory, mb':
+            return calcMax(dataValues, datasetIndex, PARAMS.memoryMB);
+        case 'AVG Memory, %':
+            return calcAverage(dataValues, datasetIndex, PARAMS.memoryPercent);
+        case 'MAX Desired Tex Memory, mb':
+            return calcMax(dataValues, datasetIndex, PARAMS.desiredTexMem);
+        case 'MAX Reserved Memory, mb':
+            return calcMax(dataValues, datasetIndex, PARAMS.totalReservedMem);
+        case 'AVG GPU Utilization, %':
+            return calcAverage(dataValues, datasetIndex, PARAMS.gpuUtilization);
+    }
+}
+
+
+/*
+* Get cell by row and column index
+* */
+const getCell = (rowIndex, colIndex) => {
+    return document.getElementById('summaryTable').rows[rowIndex].cells[colIndex];
+}
+
+
+/*
+* Fill delta cells
+* */
+const fillDeltaCells = (table) => {
+    const rows = table.rows.length;
+    const cols = table.rows[0].cells.length;
+
+    for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+            if (i !== 0 && j === cols - 1) {
+                const currentDelta = calcDelta(
+                    getCell(i, j - 1).textContent,
+                    getCell(i, j - 2).textContent
+                );
+                getCell(i, j).textContent = currentDelta;
+                getCell(i, j).className = getColorForDelta(i - 1, currentDelta);
+            }
+        }
+    }
+}
+
+
+/*
 * Create summary table based on all data, next do all calculations and fill in table
 * */
 const createTable = (parsedData) => {
@@ -512,7 +597,6 @@ const createTable = (parsedData) => {
     }
 
     const table = document.getElementById('summaryTable');
-
 
     const head = document.createElement('thead');
     head.id = 'head';
@@ -533,10 +617,13 @@ const createTable = (parsedData) => {
     const thDelta = document.createElement('th');
     thDelta.scope = 'col';
     thDelta.textContent = 'delta';
+    thDelta.onclick = () => {
+        swapColumns(table, dataKeys.length, dataKeys.length - 1);
+        fillDeltaCells(table);
+    };
     tr.appendChild(thDelta);
     head.appendChild(tr);
     table.appendChild(head);
-
 
     const body = document.createElement('tbody');
     body.id = 'body';
@@ -547,55 +634,20 @@ const createTable = (parsedData) => {
         th.textContent = rowNames[i];
         tr.appendChild(th);
 
-        const rowValues = [];
         for (let j = 0; j < dataKeys.length; j++) {
             const td = document.createElement('td');
-            switch (rowNames[i]) {
-                case '% above 60 FPS':
-                    td.textContent = calcPercentAbove60FPS(dataValues, j); break;
-                case 'AVG FPS':
-                    td.textContent = calcAverage(dataValues, j, PARAMS.fpsMeasure); break;
-                case 'AVG Game Update':
-                    td.textContent = calcAverage(dataValues, j, PARAMS.gameUpdate); break;
-                case 'AVG Render Measure':
-                    td.textContent = calcAverage(dataValues, j, PARAMS.renderMeasurer); break;
-                case 'AVG Frame Measure':
-                    td.textContent = calcAverage(dataValues, j, PARAMS.frameMeasurer); break;
-                case 'AVG Disk Idle, %':
-                    td.textContent = calcAverage(dataValues, j, PARAMS.diskIdle); break;
-                case 'MAX Disk Read, kb\\s':
-                    td.textContent = calcMax(dataValues, j, PARAMS.diskRead); break;
-                case 'MAX Disk Write, kb\\s':
-                    td.textContent = calcMax(dataValues, j, PARAMS.diskWrite); break;
-                case 'MAX VRAM, mb':
-                    td.textContent = calcMax(dataValues, j, PARAMS.vram); break;
-                case 'AVG VRAM, mb':
-                    td.textContent = calcAverage(dataValues, j, PARAMS.vram); break;
-                case 'MAX Memory, mb':
-                    td.textContent = calcMax(dataValues, j, PARAMS.memoryMB); break;
-                case 'AVG Memory, %':
-                    td.textContent = calcAverage(dataValues, j, PARAMS.memoryPercent); break;
-                case 'MAX Desired Tex Memory, mb':
-                    td.textContent = calcMax(dataValues, j, PARAMS.desiredTexMem); break;
-                case 'MAX Reserved Memory, mb':
-                    td.textContent = calcMax(dataValues, j, PARAMS.totalReservedMem); break;
-                case 'AVG GPU Utilization, %':
-                    td.textContent = calcAverage(dataValues, j, PARAMS.gpuUtilization); break;
-            }
-
+            td.textContent = getCalculatedRowValue(rowNames[i], dataValues, j);
             tr.appendChild(td);
-            rowValues.push(td.textContent)
+
             if (j === dataKeys.length - 1) {
                 const td = document.createElement('td');
-                const currentDelta = calcDelta(rowValues)
-                td.textContent = currentDelta;
-                td.className = getColorForDelta(i, currentDelta);
                 tr.appendChild(td);
             }
         }
         body.appendChild(tr);
     }
     table.appendChild(body);
+    fillDeltaCells(table, rowNames, dataKeys);
 }
 
 
@@ -638,7 +690,7 @@ const createTextField = () => {
     txtInput.id = 'textInput';
     txtInput.className = 'border-0 bg-transparent';
     txtInput.size = 30;
-    txtInput.placeholder = 'Custom report name...';
+    txtInput.placeholder = 'Report name...';
     txtInput.type = 'text';
     txtInput.style.fontSize = '15px';
     txtInput.style.fontWeight = 'bold';
