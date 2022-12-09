@@ -1,3 +1,4 @@
+
 /*
 * Parameter for coloring fps chart grid
 * */
@@ -136,18 +137,6 @@ const getCsvDataObject = async (objectURL) => {
 
 
 /*
-* Get dataset label
-* */
-const getDatasetLabel = (reportName) => {
-    const splited = reportName.split('_');
-    if (splited.length < 5) {
-        return reportName;
-    }
-    return splited.length === 5 ? `${splited[3]} ${splited[4]}` : `${splited[3]} ${splited[4]} ${splited[5]}`;
-}
-
-
-/*
 * Get object with data settings for the chart
 * */
 const getSetup = (parsedData, param) => {
@@ -158,7 +147,7 @@ const getSetup = (parsedData, param) => {
 
     for (let i = 0; i < Object.keys(parsedData).length; i++) {
         data.datasets.push({
-            label: getDatasetLabel(Object.keys(parsedData)[i]),
+            label: Object.keys(parsedData)[i],
             data: Object.values(parsedData)[i][param],
             borderColor: Object.values(CHART_COLORS)[i],
             backgroundColor: Object.values(BACKGROUND_COLORS)[i],
@@ -216,6 +205,12 @@ const getOrCreateLegendList = (chart, id) => {
 
 
 /*
+* Object for storing the latest legend names
+* */
+let lastLegendNames = {};
+
+
+/*
 * Parameter for custom HTML legend
 * */
 const htmlLegendPlugin = {
@@ -257,8 +252,15 @@ const htmlLegendPlugin = {
 
             textField.type = 'text';
             textField.size = 23;
-            textField.placeholder = `${item.text}`;
+            textField.placeholder = item.text;
+            textField.value = lastLegendNames[item.text] === undefined ? '' : lastLegendNames[item.text];
             textField.className = 'm-0 p-0 border-0 bg-transparent';
+            textField.onchange = () => {
+                const newName = textField.value;
+                if (item.text !== newName) {
+                    lastLegendNames[item.text] = newName;
+                }
+            }
 
             li.appendChild(boxSpan);
             li.appendChild(textField);
@@ -608,13 +610,15 @@ const createTable = (parsedData) => {
     for (let i = 0; i < dataKeys.length; i++) {
         const th = document.createElement('th');
         th.scope = 'col';
-        th.textContent = `${getDatasetLabel(Object.keys(parsedData)[i])}`;
+        th.textContent = `report #${i + 1}`;
+        th.style.color = CHART_COLORS[i];
         th.contentEditable = 'true';
         tr.appendChild(th);
     }
     const thDelta = document.createElement('th');
     thDelta.scope = 'col';
-    thDelta.textContent = 'delta';
+    thDelta.textContent = 'delta 🔄';
+    thDelta.style.cursor = 'pointer';
     thDelta.onclick = () => {
         swapColumns(table, dataKeys.length, dataKeys.length - 1);
         fillDeltaCells(table);
