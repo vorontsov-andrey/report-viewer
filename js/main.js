@@ -33,7 +33,7 @@ const createAndDownloadArchive = async () => {
     await takeScreenshot().then(() => {
         const canvas = document.getElementById('screenshotCanvas');
         const canvasBase64 = canvas.toDataURL().split(',')[1];
-        zip.file(`screenshot.png`, canvasBase64, {base64: true});
+        zip.file(`${archiveName}.png`, canvasBase64, {base64: true});
     })
 
     zip.generateAsync({ type:"blob" }).then((content) => {
