@@ -1,5 +1,48 @@
 
 /*
+* Take screenshot of page
+* */
+const takeScreenshot = async () => {
+    await html2canvas(document.querySelector("html")).then(canvas => {
+        if (document.getElementById('screenshotCanvas')) {
+            document.getElementById('screenshotCanvas').remove();
+        }
+
+        canvas.style = 'width: 0px; height: 0px;';
+        canvas.id = 'screenshotCanvas';
+        document.getElementById('screenshotCanvasContainer').appendChild(canvas);
+    });
+}
+
+
+/*
+* Create and download result archive
+* */
+const createAndDownloadArchive = async () => {
+    const zip = new JSZip();
+    const files = document.getElementById('fileInput').files;
+    const legend = document.querySelectorAll('ul > li > input');
+    const reportName = document.getElementById('textInput');
+    const archiveName = reportName.value === '' ? 'perf_report' : reportName.value;
+
+    for (let i = 0; i < files.length; i++) {
+        const fileName = legend[i].value === '' ? legend[i].placeholder : legend[i].value;
+        zip.file(`${fileName}.csv`, files[i]);
+    }
+
+    await takeScreenshot().then(() => {
+        const canvas = document.getElementById('screenshotCanvas');
+        const canvasBase64 = canvas.toDataURL().split(',')[1];
+        zip.file(`screenshot.png`, canvasBase64, {base64: true});
+    })
+
+    zip.generateAsync({ type:"blob" }).then((content) => {
+        saveAs(content, `${archiveName}.zip`);
+    });
+}
+
+
+/*
 * Parameter for coloring fps chart grid
 * */
 const gridParamForFpsChart = {
@@ -721,6 +764,29 @@ const createTextField = () => {
 
 
 /*
+* Create save button
+* */
+const createSaveButton = () => {
+    const saveButtonDiv = document.getElementById('saveButtonDiv');
+    if (document.getElementById('save')) {
+        document.getElementById('save').remove();
+    }
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.id = 'save';
+    button.className = 'btn btn-outline-success btn-md';
+    button.onclick = () => {
+        const screenshotCanvas = takeScreenshot();
+        createAndDownloadArchive(screenshotCanvas);
+    }
+    button.textContent = 'Save results ✅';
+
+    saveButtonDiv.appendChild(button);
+}
+
+
+/*
 * On change files update chart, create text field, summary table and textarea. On change select update only chart
 * */
 const onChange = (source) => {
@@ -737,6 +803,7 @@ const onChange = (source) => {
             createTextField();
             createTable(parsedData);
             createTextArea();
+            createSaveButton();
         }
 
         if (source === 'select') {
