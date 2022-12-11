@@ -796,7 +796,7 @@ const createTextField = () => {
     const txtInput = document.createElement('input');
     txtInput.id = 'textInput';
     txtInput.className = 'border-0 bg-transparent';
-    txtInput.size = 30;
+    txtInput.size = 50;
     txtInput.placeholder = 'Report name...';
     txtInput.type = 'text';
     txtInput.style.fontSize = '15px';
