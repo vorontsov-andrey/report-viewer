@@ -754,7 +754,6 @@ const createTable = (parsedData) => {
 * */
 const createTextArea = () => {
     const txtArea = document.createElement('textarea');
-    txtArea.wrap = 'hard';
     txtArea.className = 'form-control w-100';
     txtArea.rows = 7;
     txtArea.id = 'textArea';
