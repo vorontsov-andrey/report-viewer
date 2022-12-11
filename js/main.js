@@ -16,6 +16,38 @@ const takeScreenshot = async () => {
 
 
 /*
+* Convert textarea to plain text
+* */
+const convertTextareaToPlain = () => {
+    const txtArea = document.getElementById('textArea');
+    const comment = document.getElementById('comment');
+    const text = txtArea.value;
+    txtArea.remove();
+
+    const p = document.createElement('p');
+    p.innerText = text;
+    p.id = 'taReplacement';
+    p.className = 'border rounded border-dark border-1 p-2';
+    comment.appendChild(p);
+    return text;
+}
+
+
+/*
+* Convert plain to textarea
+* */
+const convertPlainToTextarea = (text) => {
+    const plain = document.getElementById('taReplacement');
+    const comment = document.getElementById('comment');
+
+    plain.remove();
+    const txtArea = createTextArea();
+    txtArea.value = text;
+    comment.appendChild(txtArea);
+}
+
+
+/*
 * Create and download result archive
 * */
 const createAndDownloadArchive = async () => {
@@ -30,10 +62,13 @@ const createAndDownloadArchive = async () => {
         zip.file(`${fileName}.csv`, files[i]);
     }
 
+    const text = convertTextareaToPlain();
     await takeScreenshot().then(() => {
         const canvas = document.getElementById('screenshotCanvas');
         const canvasBase64 = canvas.toDataURL().split(',')[1];
         zip.file(`${archiveName}.png`, canvasBase64, {base64: true});
+
+        convertPlainToTextarea(text);
     })
 
     zip.generateAsync({ type:"blob" }).then((content) => {
@@ -424,7 +459,7 @@ const getConfig = (parsedData, data, param) => {
 * Render chart on canvas
 * */
 const renderChart = (config) => {
-    const chart = new Chart(
+    new Chart(
         document.getElementById('chartCanvas'),
         config
     );
@@ -715,9 +750,22 @@ const createTable = (parsedData) => {
 
 
 /*
-* Create label and textarea on page
+* Create textarea
 * */
 const createTextArea = () => {
+    const txtArea = document.createElement('textarea');
+    txtArea.wrap = 'hard';
+    txtArea.className = 'form-control w-100';
+    txtArea.rows = 7;
+    txtArea.id = 'textArea';
+    return txtArea;
+}
+
+
+/*
+* Create label and textarea on page
+* */
+const createTextAreaAndLabel = () => {
     const comment = document.getElementById('comment');
     if (document.getElementById('taLabel') && document.getElementById('textArea')) {
         document.getElementById('taLabel').remove();
@@ -728,15 +776,12 @@ const createTextArea = () => {
     taLabel.id = 'taLabel';
     taLabel.htmlFor = 'textArea';
     taLabel.className = 'form-label';
-    taLabel.textContent = 'Comment';
+    taLabel.textContent = 'Comment:';
 
-    const txtArea = document.createElement('textarea');
-    txtArea.className = 'form-control';
-    txtArea.id = 'textArea';
-    txtArea.rows = 3;
+    const txtArea = createTextArea();
 
     comment.appendChild(taLabel);
-    comment.appendChild(txtArea)
+    comment.appendChild(txtArea);
 }
 
 
@@ -802,7 +847,7 @@ const onChange = (source) => {
 
             createTextField();
             createTable(parsedData);
-            createTextArea();
+            createTextAreaAndLabel();
             createSaveButton();
         }
 
