@@ -70,6 +70,7 @@ const createAndDownloadArchive = async () => {
 
         convertPlainToTextarea(text);
     })
+    zip.file(`comment.txt`, text);
 
     zip.generateAsync({ type:"blob" }).then((content) => {
         saveAs(content, `${archiveName}.zip`);
