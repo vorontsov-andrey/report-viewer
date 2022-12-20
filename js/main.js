@@ -541,14 +541,28 @@ const calcAverage = (dataValues, dataset, param) => {
 
 
 /*
-* Calculate delta for summary table
+* Calculate delta as absolute value for summary table
 * */
-const calcDelta = (lastCol, prevCol) => {
-    if (lastCol === undefined || prevCol === undefined) {
+const calcDeltaAbs = (lastCol, prevCol) => {
+    if (lastCol === undefined || lastCol === '' ||
+        prevCol === undefined || prevCol === '') {
         return '';
     }
-    const delta = Number(lastCol - prevCol).toFixed(2);
-    return delta > 0 ? `+${delta}` : `${delta}`;
+    const deltaAbs = Number(lastCol - prevCol).toFixed(2);
+    return deltaAbs > 0 ? `+${deltaAbs}` : `${deltaAbs}`;
+}
+
+
+/*
+* Calculate delta as percentage for summary table
+* */
+const calcDeltaPercent = (lastCol, prevCol) => {
+    if (lastCol === undefined || lastCol === '' ||
+        prevCol === undefined || prevCol === '') {
+        return '';
+    }
+    const deltaPercent = Number(lastCol / prevCol * 100 - 100).toFixed(2);
+    return deltaPercent > 0 ? `+${deltaPercent}` : `${deltaPercent}`;
 }
 
 
@@ -651,12 +665,26 @@ const fillDeltaCells = (table) => {
 
     for (let i = 0; i < rows; i++) {
         for (let j = 0; j < cols; j++) {
-            if (i !== 0 && j === cols - 1) {
-                const currentDelta = calcDelta(
+            if (i !== 0 && j === cols - 2) {
+                const currentDelta = calcDeltaAbs(
                     getCell(i, j - 1).textContent,
                     getCell(i, j - 2).textContent
                 );
                 getCell(i, j).textContent = currentDelta;
+                getCell(i, j).className = getColorForDelta(i - 1, currentDelta);
+            }
+            if (i !== 0 && j === cols - 1) {
+                const currentDelta = calcDeltaPercent(
+                    getCell(i, j - 2).textContent,
+                    getCell(i, j - 3).textContent
+                );
+
+                if (isFinite(currentDelta) && currentDelta !== '') {
+                    getCell(i, j).textContent = `${currentDelta}%`;
+                } else {
+                    getCell(i, j).textContent = '';
+                }
+
                 getCell(i, j).className = getColorForDelta(i - 1, currentDelta);
             }
         }
@@ -712,15 +740,27 @@ const createTable = (parsedData) => {
         th.contentEditable = 'true';
         tr.appendChild(th);
     }
-    const thDelta = document.createElement('th');
-    thDelta.scope = 'col';
-    thDelta.textContent = 'delta 🔄';
-    thDelta.style.cursor = 'pointer';
-    thDelta.onclick = () => {
+
+    const thDeltaAbs = document.createElement('th');
+    thDeltaAbs.scope = 'col';
+    thDeltaAbs.textContent = 'Δ, abs';
+    thDeltaAbs.style.cursor = 'pointer';
+    thDeltaAbs.onclick = () => {
         swapColumns(table, dataKeys.length, dataKeys.length - 1);
         fillDeltaCells(table);
     };
-    tr.appendChild(thDelta);
+
+    const thDeltaPercent = document.createElement('th');
+    thDeltaPercent.scope = 'col';
+    thDeltaPercent.textContent = 'Δ, %';
+    thDeltaPercent.style.cursor = 'pointer';
+    thDeltaPercent.onclick = () => {
+        swapColumns(table, dataKeys.length, dataKeys.length - 1);
+        fillDeltaCells(table);
+    };
+
+    tr.appendChild(thDeltaAbs);
+    tr.appendChild(thDeltaPercent);
     head.appendChild(tr);
     table.appendChild(head);
 
@@ -735,12 +775,20 @@ const createTable = (parsedData) => {
 
         for (let j = 0; j < dataKeys.length; j++) {
             const td = document.createElement('td');
-            td.textContent = getCalculatedRowValue(rowNames[i], dataValues, j);
+            const val = getCalculatedRowValue(rowNames[i], dataValues, j);
+            if (val === undefined || isNaN(val) || !isFinite(val)) {
+                td.textContent = '';
+            } else {
+                td.textContent = val;
+            }
+
             tr.appendChild(td);
 
             if (j === dataKeys.length - 1) {
-                const td = document.createElement('td');
-                tr.appendChild(td);
+                const td1 = document.createElement('td');
+                const td2 = document.createElement('td');
+                tr.appendChild(td1);
+                tr.appendChild(td2);
             }
         }
         body.appendChild(tr);
